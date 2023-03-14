@@ -1,2 +1,2 @@
 # helm
-All the helm charts for running the Actio platform
+All the helm charts for running the FRMS platform
