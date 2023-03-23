@@ -1,6 +1,10 @@
+{{/*
+Copyright (c) HashiCorp, Inc.
+SPDX-License-Identifier: MPL-2.0
+*/}}
+
 {{ template "vault.mode" . }}
 {{- if ne .mode "external" }}
-{{- template "vault.serverEnabled" . -}}
 {{- if .serverEnabled -}}
 {{- if ne .mode "dev" -}}
 {{ if or (.Values.server.standalone.config) (.Values.server.ha.config) -}}
@@ -8,7 +12,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ template "vault.fullname" . }}-config
-  namespace: {{ .Release.Namespace }}
+  namespace: development
   labels:
     helm.sh/chart: {{ include "vault.chart" . }}
     app.kubernetes.io/name: {{ include "vault.name" . }}
