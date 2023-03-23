@@ -30,10 +30,10 @@ data:
         access_log /dev/stdout basic;
 
         server {
-            listen              8529 ssl;
-            proxy_pass          {{ required "Arango Deployment name needs to be provided!" .Values.deployment }}:8529;
+            listen              443 ssl;
+            proxy_pass          arango:8529;
 
-            proxy_ssl  on;
+            proxy_ssl  off;
 
             ssl_certificate     /etc/nginx/local-tls/tls.crt;
             ssl_certificate_key /etc/nginx/local-tls/tls.key;
