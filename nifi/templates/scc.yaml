@@ -11,6 +11,7 @@ metadata:
     kubernetes.io/description: {{ template "apache-nifi.fullname" . }}-scc provides all features of the restricted SCC but
       allows users to run with any UID and any GID.
   name: {{ template "apache-nifi.fullname" . }}-scc
+  namespace: development
 allowHostDirVolumePlugin: false
 allowHostIPC: false
 allowHostNetwork: false
@@ -34,7 +35,7 @@ seLinuxContext:
 supplementalGroups:
   type: RunAsAny
 users:
-- system:serviceaccount:{{ .Release.Namespace }}:{{ include "apache-nifi.serviceAccountName" . }}
+- system:serviceaccount:development:{{ include "apache-nifi.serviceAccountName" . }}
 volumes:
 - configMap
 - downwardAPI

@@ -1,0 +1,10 @@
+kind: Profile
+apiVersion: openfaas.com/v1
+metadata:
+  name: nodeselector
+  namespace: openfaas
+spec:
+    tolerations:
+    - key: "kubernetes.io/hostname"
+      operator: "Exists"
+      effect: "NoSchedule"

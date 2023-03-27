@@ -1,0 +1,61 @@
+---
+apiVersion: v2
+name: Subchart
+version: 1.0.0
+appVersion: 1.0.0
+description: This is the subchart to install all the different software systems for FRMS.
+keywords:
+  - nifi
+  - arangodb
+  - apm
+  - logstash
+  - jenkins
+  - keycloak
+  - elasticsearch
+  - nginx-ingress
+  - openfaas
+  - redis 
+  - vault
+home: https://github.com/frmscoe/helm
+icon: https://github.com/frmscoe/helm
+maintainers:
+  - name: kyle
+    email: kyle.vorster@sybrin.com
+    url: https://github.com/vorsterk
+dependencies:
+  - name: nifi
+    version: 1.16.3
+    repository: https://github.com/frmscoe/helm/tree/main/nifi
+  - name: arangodb
+    version: latest
+    repository: https://github.com/frmscoe/helm/tree/main/arangodb-single
+  - name: arangodb-ingress
+    version: 1.16.1
+    repository: https://github.com/frmscoe/helm/tree/main/arangodb-ingress-proxy
+  - name: apm
+    version: 8.5.1
+    repository: https://github.com/frmscoe/helm/tree/main/apm
+  - name: logstash
+    version: 8.6.2
+    repository: https://github.com/frmscoe/helm/tree/main/logstash
+  - name: jenkins
+    version: 2.387.1
+    repository: https://github.com/frmscoe/helm/tree/main/jenkins
+  - name: keycloak
+    version: 20.0.5
+    repository: https://github.com/frmscoe/helm/tree/main/keycloak
+  - name: elasticsearch
+    version: 8.6.2
+    repository: https://github.com/frmscoe/helm/tree/main/elasticsearch
+  - name: nginx-ingress
+    version: 1.6.4
+    repository: https://github.com/frmscoe/helm/tree/main/nginx-ingress-controller
+  - name: openfaas
+    version: 12.0.2
+    repository: https://github.com/frmscoe/helm/tree/main/openfaas
+  - name: redis
+    version: 7.0.9
+    repository: https://github.com/frmscoe/helm/tree/main/redis
+  - name: vault
+    version: 1.12.1
+    repository: https://github.com/frmscoe/helm/tree/main/vault

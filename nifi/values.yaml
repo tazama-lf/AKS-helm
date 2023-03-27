@@ -7,7 +7,8 @@ replicaCount: 1
 ##
 image:
   repository: apache/nifi
-  tag: "1.14.0"
+  namespace: development
+  tag: "1.16.3"
   pullPolicy: "IfNotPresent"
 
   ## Optionally specify an imagePullSecret.
@@ -38,10 +39,11 @@ sts:
   pod:
     annotations:
       security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000
-      #prometheus.io/scrape: "true"      
+      #prometheus.io/scrape: "true"
   serviceAccount:
     create: false
-    #name: nifi
+    name: nifi
+    namespace: development
     annotations: {}
   hostAliases: []
 #    - ip: "1.2.3.4"
@@ -75,16 +77,28 @@ sts:
 properties:
   # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#nifi_sensitive_props_key
   sensitiveKey: changeMechangeMe # Must have at least 12 characters
+  # NiFi assumes conf/nifi.properties is persistent but this helm chart
+  # recreates it every time.  Setting the Sensitive Properties Key
+  # (nifi.sensitive.props.key) is supposed to happen at the same time
+  # /opt/nifi/data/flow.xml.gz sensitive properties are encrypted.  If that
+  # doesn't happen then NiFi won't start because decryption fails.
+  # So if sensitiveKeySetFile is configured but doesn't exist, assume
+  # /opt/nifi/flow.xml.gz hasn't been encrypted and follow the procedure
+  # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#updating-the-sensitive-properties-key
+  # to simultaneously encrypt it and set nifi.sensitive.props.key.
+  # sensitiveKeySetFile: /opt/nifi/data/sensitive-props-key-applied
+  # If sensitiveKey was already set, then pass in sensitiveKeyPrior with the old key.
+  # sensitiveKeyPrior: OldPasswordToChangeFrom
   algorithm: NIFI_PBKDF2_AES_GCM_256
   # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
   externalSecure: false
   isNode: false
-  httpsPort: 8443 
+  httpsPort: 8080
   webProxyHost: # <clusterIP>:<NodePort> (If Nifi service is NodePort or LoadBalancer)
   clusterPort: 6007
   provenanceStorage: "8 GB"
   siteToSite:
-    port: 10000
+    port: 8081
   # use properties.safetyValve to pass explicit 'key: value' pairs that overwrite other configuration
   safetyValve:
     #nifi.variable.registry.properties: "${NIFI_HOME}/example1.properties, ${NIFI_HOME}/example2.properties"
@@ -101,15 +115,19 @@ properties:
 
 # Nifi User Authentication
 auth:
+  # If set while LDAP is enabled, this value will be used for the initial admin and not the ldap bind dn / admin
   admin: CN=admin, OU=NIFI
   SSL:
     keystorePasswd: changeMe
     truststorePasswd: changeMe
-  
-  # Automaticaly disabled if OIDC or LDAP enabled 
+
+  # Automaticaly disabled if OIDC or LDAP enabled
   singleUser:
     username: username
-    password: changemechangeme # Must to have at least 12 characters
+    password: x54gwVNckgFD # Must to have at least 12 characters
+
+  clientAuth:
+    enabled: false
 
   ldap:
     enabled: false
@@ -122,6 +140,8 @@ auth:
     authStrategy: SIMPLE # How the connection to the LDAP server is authenticated. Possible values are ANONYMOUS, SIMPLE, LDAPS, or START_TLS.
     identityStrategy: USE_DN
     authExpiration: 12 hours
+    userSearchScope: ONE_LEVEL # Search scope for searching users (ONE_LEVEL, OBJECT, or SUBTREE). Required if searching users.
+    groupSearchScope: ONE_LEVEL # Search scope for searching groups (ONE_LEVEL, OBJECT, or SUBTREE). Required if searching groups.
 
   oidc:
     enabled: false
@@ -163,7 +183,7 @@ headless:
 # ui service
 service:
   type: ClusterIP
-  httpsPort: 8443
+  httpsPort: 8080
   # nodePort: 30236
   annotations: {}
     # loadBalancerIP:
@@ -195,6 +215,7 @@ service:
 ##
 ingress:
   enabled: false
+  # className: nginx
   annotations: {}
   tls: []
   hosts: []
@@ -214,7 +235,7 @@ sidecar:
 ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
 ##
 persistence:
-  enabled: false
+  enabled: true
 
   # When creating persistent storage, the NiFi helm chart can either reference an already-defined
   # storage class by name, such as "standard" or can define a custom storage class by specifying
@@ -341,6 +362,36 @@ ca:
     scc:
       enabled: false
 
+# cert-manager support
+# Setting this true will have cert-manager create a private CA for the cluster
+# as well as the certificates for each cluster node.
+certManager:
+  enabled: false
+  clusterDomain: cluster.local
+  keystorePasswd: changeme
+  truststorePasswd: changeme
+  replaceDefaultTrustStore: false
+  additionalDnsNames:
+    - localhost
+  refreshSeconds: 300
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+  # cert-manager takes care of rotating the node certificates, so default
+  # their lifetime to 90 days.  But when the CA expires you may need to
+  # 'helm delete' the cluster, delete all the node certificates and secrets,
+  # and then 'helm install' the NiFi cluster again.  If a site-to-site trusted
+  # CA or a NiFi Registry CA certificate expires, you'll need to restart all
+  # pods to pick up the new version of the CA certificate.  So default the CA
+  # lifetime to 10 years to avoid that happening very often.
+  # c.f. https://github.com/cert-manager/cert-manager/issues/2478#issuecomment-1095545529
+  certDuration: 2160h
+  caDuration: 87660h
+
 # ------------------------------------------------------------------------------
 # Zookeeper:
 # ------------------------------------------------------------------------------
@@ -350,6 +401,7 @@ zookeeper:
   enabled: true
   ## If the Zookeeper Chart is disabled a URL and port are required to connect
   url: ""
+  namespace: development
   port: 2181
   replicaCount: 3
 
@@ -358,11 +410,12 @@ zookeeper:
 # ------------------------------------------------------------------------------
 registry:
   ## If true, install the Nifi registry
-  enabled: false
+  enabled: true
   url: ""
+  namespace: development
   port: 80
   ## Add values for the nifi-registry here
-  ## ref: https://github.com/dysnix/charts/blob/master/nifi-registry/values.yaml
+  ## ref: https://github.com/dysnix/charts/blob/main/dysnix/nifi-registry/values.yaml
 
 # Configure metrics
 metrics:
