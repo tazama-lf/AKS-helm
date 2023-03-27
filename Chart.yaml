@@ -1,6 +1,6 @@
 ---
 apiVersion: v2
-name: Subchart
+name: FRMS
 version: 1.0.0
 appVersion: 1.0.0
 description: This is the subchart to install all the different software systems for FRMS.
