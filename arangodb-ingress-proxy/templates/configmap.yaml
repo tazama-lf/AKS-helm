@@ -30,6 +30,7 @@ data:
         access_log /dev/stdout basic;
 
         server {
+
             listen              443 ssl;
             proxy_pass          arango:8529;
 

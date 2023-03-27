@@ -1,0 +1,75 @@
+global:
+  nameOverride: Sub-Chart
+
+nifi:
+  enabled: true
+  image:
+    repository: https://github.com/frmscoe/helm/tree/main/nifi
+    tag: 1.0.0
+
+arangodb:
+  enabled: true
+  image:
+    repository: https://github.com/frmscoe/helm/tree/main/arangodb-single
+    tag: 2.0.0
+
+arangodb-ingress:
+  enabled: true
+  image:
+    repository: https://github.com/frmscoe/helm/tree/main/arangodb-ingress-proxy
+    tag: 1.0.0
+
+apm:
+  enabled: true
+  image:
+    repository: https://github.com/frmscoe/helm/tree/main/apm
+    tag: 1.0.0
+
+logstash:
+  enabled: true
+  image:
+    repository: https://github.com/frmscoe/helm/tree/main/logstash
+    tag: 1.0.0
+
+jenkins:
+  enabled: true
+  image:
+    repository: https://github.com/frmscoe/helm/tree/main/jenkins
+    tag: 1.0.0
+
+keycloak:
+  enabled: true
+  image:
+    repository: https://github.com/frmscoe/helm/tree/main/keycloak
+    tag: 1.0.0
+
+elasticsearch:
+  enabled: true
+  image:
+    repository: https://github.com/frmscoe/helm/tree/main/elasticsearch
+    tag: 1.0.0
+
+nginx-ingress:
+  enabled: true
+  image:
+    repository: https://github.com/frmscoe/helm/tree/main/nginx-ingress-controller
+    tag: 1.0.0
+
+openfaas:
+  enabled: true
+  image:
+    repository: https://github.com/frmscoe/helm/tree/main/openfaas
+    tag: 1.0.0
+
+redis:
+  enabled: true
+  image:
+    repository: https://github.com/frmscoe/helm/tree/main/redis
+    tag: 1.0.0
+
+vault:
+  enabled: true
+  image:
+    repository: https://github.com/frmscoe/helm/tree/main/vault
+    tag: 1.0.0
+
