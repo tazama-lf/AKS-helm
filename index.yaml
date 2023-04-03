@@ -1,6 +1,6 @@
 serverInfo:
   contextPath: /v1/helm
-apiVersion: v1
+apiVersion: v2
 entries:
   nifi:
   - apiVersion: v2
