@@ -1,75 +1,74 @@
 global:
   nameOverride: Sub-Chart
 
-nifi:
-  enabled: true
-  image:
-    repository: https://github.com/frmscoe/helm/tree/main/nifi
-    tag: 1.0.0
+#nifi:
+#  enabled: true
+#  image:
+#    repository: https://github.com/frmscoe/helm/tree/main/nifi
+#    tag: 1.0.0
 
 arangodb:
   enabled: true
   image:
-    repository: https://github.com/frmscoe/helm/tree/main/arangodb-single
+    repository: charts/arangodb-1.0.0.tgz
     tag: 2.0.0
 
 arangodb-ingress:
   enabled: true
   image:
-    repository: https://github.com/frmscoe/helm/tree/main/arangodb-ingress-proxy
+    repository: charts/arangodb-ingress-proxy-1.0.0.tgz
     tag: 1.0.0
 
 apm:
   enabled: true
   image:
-    repository: https://github.com/frmscoe/helm/tree/main/apm
+    repository: charts/apm-server-8.5.1.tgz
     tag: 1.0.0
 
 logstash:
   enabled: true
   image:
-    repository: https://github.com/frmscoe/helm/tree/main/logstash
+    repository: charts/logstash-5.1.15.tgz
     tag: 1.0.0
 
 jenkins:
   enabled: true
   image:
-    repository: https://github.com/frmscoe/helm/tree/main/jenkins
+    repository: charts/jenkins-12.0.1.tgz
     tag: 1.0.0
 
 keycloak:
   enabled: true
   image:
-    repository: https://github.com/frmscoe/helm/tree/main/keycloak
+    repository: charts/keycloak-13.3.0.tgz
     tag: 1.0.0
 
 elasticsearch:
   enabled: true
   image:
-    repository: https://github.com/frmscoe/helm/tree/main/elasticsearch
+    repository: charts/elasticsearch-19.5.14.tgz
     tag: 1.0.0
 
 nginx-ingress:
   enabled: true
   image:
-    repository: https://github.com/frmscoe/helm/tree/main/nginx-ingress-controller
+    repository: charts/nginx-ingress-controller-9.3.32.tgz
     tag: 1.0.0
 
 openfaas:
   enabled: true
   image:
-    repository: https://github.com/frmscoe/helm/tree/main/openfaas
+    repository: charts/openfaas-12.0.2.tgz
     tag: 1.0.0
 
 redis:
   enabled: true
   image:
-    repository: https://github.com/frmscoe/helm/tree/main/redis
+    repository: charts/redis-17.8.5.tgz
     tag: 1.0.0
 
 vault:
   enabled: true
   image:
-    repository: https://github.com/frmscoe/helm/tree/main/vault
+    repository: charts/vault-0.23.0.tgz
     tag: 1.0.0
-

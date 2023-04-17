@@ -1,0 +1,7 @@
+namespaces:
+  - name: cicd
+  - name: default
+  - name: development
+  - name: ingress-nginx
+  - name: openfaas
+  - name: openfaas-fn
