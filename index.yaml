@@ -3,7 +3,7 @@ entries:
   apm-server:
   - apiVersion: v1
     appVersion: 8.5.1
-    created: "2023-04-17T09:57:04.0409709+02:00"
+    created: "2023-04-18T12:58:09.8100663+02:00"
     description: Official Elastic helm chart for Elastic APM Server
     digest: 3401a23adaef389193fd07df2be4bb56f70c53ba31a88f56d8d7b45f98d1bc06
     home: https://github.com/elastic/helm-charts
@@ -15,29 +15,29 @@ entries:
     sources:
     - https://github.com/elastic/apm
     urls:
-    - apm-server-8.5.1.tgz
+    - charts/apm-server-8.5.1.tgz
     version: 8.5.1
   arangodb:
   - apiVersion: v2
-    created: "2023-04-17T09:57:04.0479687+02:00"
+    created: "2023-04-18T12:58:09.8150546+02:00"
     digest: 82b9994a25b6833e79ddf04c0573cd5146be1685bd2bb9805e93a071643bef1a
     name: arangodb
     urls:
-    - arangodb-1.0.0.tgz
+    - charts/arangodb-1.0.0.tgz
     version: 1.0.0
   arangodb-ingress-proxy:
   - apiVersion: v1
-    created: "2023-04-17T09:57:04.0539693+02:00"
+    created: "2023-04-18T12:58:09.8196209+02:00"
     description: ArangoDB Ingress Proxy
     digest: 0576833e01d32f063f415c8a29f7fd370bc7853fe0d2d22ddbec071937702187
     name: arangodb-ingress-proxy
     urls:
-    - arangodb-ingress-proxy-1.0.0.tgz
+    - charts/arangodb-ingress-proxy-1.0.0.tgz
     version: 1.0.0
   elasticsearch:
   - apiVersion: v1
     appVersion: 8.5.1
-    created: "2023-04-17T09:57:04.061583+02:00"
+    created: "2023-04-18T12:58:09.8335594+02:00"
     description: Official Elastic helm chart for Elasticsearch
     digest: 89bc07d7b2de34e419c2d755274ad05916728f6d351ba8fffb9754261e17295d
     home: https://github.com/elastic/helm-charts
@@ -49,23 +49,23 @@ entries:
     sources:
     - https://github.com/elastic/elasticsearch
     urls:
-    - elasticsearch-8.5.1.tgz
+    - charts/elasticsearch-8.5.1.tgz
     version: 8.5.1
   infra-chart:
   - apiVersion: v2
-    created: "2023-04-17T09:57:04.0679115+02:00"
+    created: "2023-04-18T12:58:09.8399144+02:00"
     description: A Helm chart for installing infrastructure components for the FRMS
       system.
     digest: 5206af8719e9835bf4d72ee355c675c60c78f0ecc93a9df1abf279c9676dcfc8
     name: infra-chart
     type: application
     urls:
-    - infra-chart-1.0.0.tgz
+    - charts/infra-chart-1.0.0.tgz
     version: 1.0.0
   jenkins:
   - apiVersion: v2
     appVersion: 2.387.1
-    created: "2023-04-17T09:57:04.0720463+02:00"
+    created: "2023-04-18T12:58:09.849981+02:00"
     dependencies:
     - name: common
       repository: https://charts.bitnami.com/bitnami
@@ -92,7 +92,7 @@ entries:
     - httpsgithub.combitnamicontainerstreemainbitnamijenkins
     - httpsjenkins.io
     urls:
-    - jenkins-12.0.1.tgz
+    - charts/jenkins-12.0.1.tgz
     version: 12.0.1
   keycloak:
   - annotations:
@@ -100,7 +100,7 @@ entries:
       licenses: Apache-2.0
     apiVersion: v2
     appVersion: 21.0.2
-    created: "2023-04-17T09:57:04.0870654+02:00"
+    created: "2023-04-18T12:58:09.8646911+02:00"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -128,12 +128,12 @@ entries:
     - https://github.com/bitnami/containers/tree/main/bitnami/keycloak
     - https://github.com/keycloak/keycloak
     urls:
-    - keycloak-14.2.0.tgz
+    - charts/keycloak-14.2.0.tgz
     version: 14.2.0
   kibana:
   - apiVersion: v1
     appVersion: 8.5.1
-    created: "2023-04-17T09:57:04.0937166+02:00"
+    created: "2023-04-18T12:58:09.8716902+02:00"
     description: Official Elastic helm chart for Kibana
     digest: 1b92a833a6a6f2f69a255779a01ce6e334fa4b1d950403bf13d13cafc2078a73
     home: https://github.com/elastic/helm-charts
@@ -145,12 +145,12 @@ entries:
     sources:
     - https://github.com/elastic/kibana
     urls:
-    - kibana-8.5.1.tgz
+    - charts/kibana-8.5.1.tgz
     version: 8.5.1
   logstash:
   - apiVersion: v1
     appVersion: 8.5.1
-    created: "2023-04-17T09:57:04.10123+02:00"
+    created: "2023-04-18T12:58:09.8777243+02:00"
     description: Official Elastic helm chart for Logstash
     digest: f0d8a9a5f2b3111afd85289be34afbdf175e2076e2c49f4e4c158bf4fb419f22
     home: https://github.com/elastic/helm-charts
@@ -162,7 +162,7 @@ entries:
     sources:
     - https://github.com/elastic/logstash
     urls:
-    - logstash-8.5.1.tgz
+    - charts/logstash-8.5.1.tgz
     version: 8.5.1
   nginx-ingress-controller:
   - annotations:
@@ -170,7 +170,7 @@ entries:
       licenses: Apache-2.0
     apiVersion: v2
     appVersion: 1.6.4
-    created: "2023-04-17T09:57:04.1096901+02:00"
+    created: "2023-04-18T12:58:09.8857251+02:00"
     dependencies:
     - name: common
       repository: https://charts.bitnami.com/bitnami
@@ -198,11 +198,19 @@ entries:
     - https://github.com/bitnami/containers/tree/main/bitnami/nginx-ingress-controller
     - https://github.com/kubernetes/ingress-nginx
     urls:
-    - nginx-ingress-controller-9.3.32.tgz
+    - charts/nginx-ingress-controller-9.3.32.tgz
     version: 9.3.32
+  nuxeo:
+  - apiVersion: v2
+    created: "2023-04-18T12:58:09.8857251+02:00"
+    digest: 48183230baf781eae7901aa27e8ff88fd0749269887312b0053377700912688d
+    name: nuxeo
+    urls:
+    - charts/nuxeo-1.0.0.tgz
+    version: 1.0.0
   openfaas:
   - apiVersion: v2
-    created: "2023-04-17T09:57:04.1179204+02:00"
+    created: "2023-04-18T12:58:09.8937247+02:00"
     description: OpenFaaS - Serverless Functions Made Simple
     digest: 59e49bcc44a48f1a95874a6c6ad721d94c4465ae7667182d656bd2f008308259
     home: https://www.openfaas.com
@@ -225,7 +233,7 @@ entries:
     - https://github.com/openfaas/faas-netes
     type: application
     urls:
-    - openfaas-12.0.2.tgz
+    - charts/openfaas-12.0.2.tgz
     version: 12.0.2
   redis:
   - annotations:
@@ -233,7 +241,7 @@ entries:
       licenses: Apache-2.0
     apiVersion: v2
     appVersion: 7.0.9
-    created: "2023-04-17T09:57:04.1339557+02:00"
+    created: "2023-04-18T12:58:09.9076904+02:00"
     dependencies:
     - name: common
       repository: https://charts.bitnami.com/bitnami
@@ -257,14 +265,14 @@ entries:
     sources:
     - https://github.com/bitnami/containers/tree/main/bitnami/redis
     urls:
-    - redis-17.8.5.tgz
+    - charts/redis-17.8.5.tgz
     version: 17.8.5
   vault:
   - annotations:
       charts.openshift.io/name: HashiCorp Vault
     apiVersion: v2
     appVersion: 1.13.1
-    created: "2023-04-17T09:57:04.1423312+02:00"
+    created: "2023-04-18T12:58:09.9157252+02:00"
     description: Official HashiCorp Vault Chart
     digest: 16828261422256465670d504b31ec71f1ba59bc6a922413632c7ff54eb4b03e5
     home: https://www.vaultproject.io
@@ -285,6 +293,6 @@ entries:
     - https://github.com/hashicorp/vault-k8s
     - https://github.com/hashicorp/vault-csi-provider
     urls:
-    - vault-0.24.0.tgz
+    - charts/vault-0.24.0.tgz
     version: 0.24.0
-generated: "2023-04-17T09:57:04.0289735+02:00"
+generated: "2023-04-18T12:58:09.8035297+02:00"
