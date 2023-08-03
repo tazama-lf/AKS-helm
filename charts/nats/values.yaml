@@ -239,7 +239,7 @@ nats:
   mappings: {}
 
   jetstream:
-    enabled: true
+    enabled: false
 
     # Jetstream Domain
     domain:
