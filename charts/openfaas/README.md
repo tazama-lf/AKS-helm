@@ -406,7 +406,7 @@ In some cases your additional functions may need to be either deleted before del
 
 This Helm chart currently supports version 1.16+
 
-Note that OpenFaaS itself may support a wider range of versions, [see here](../../README.md#kubernetes-versions)
+Note that OpenFaaS itself may support a wider range of versions, [see here](../../README_Old.md#kubernetes-versions)
 
 ## Getting help
 
