@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 ## OpenFaaS Pro quick-start for local development
 
 ```bash

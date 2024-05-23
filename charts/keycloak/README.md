@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 <!--- app-name: Keycloak -->
 
 # Keycloak packaged by Bitnami

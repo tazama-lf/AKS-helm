@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 {{- $functionNs := default .Release.Namespace .Values.functionNamespace }}
 {{- if not .Values.openfaasPro }}
 {{- if .Values.alertmanager.create }}
