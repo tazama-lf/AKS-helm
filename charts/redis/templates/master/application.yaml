@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 {{- if or (not (eq .Values.architecture "replication")) (not .Values.sentinel.enabled) }}
 apiVersion: {{ include "common.capabilities.statefulset.apiVersion" . }}
 kind: {{ .Values.master.kind }}

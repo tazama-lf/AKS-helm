@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 {{- $customUser := include "postgresql.username" . }}
 apiVersion: {{ include "common.capabilities.statefulset.apiVersion" . }}
 kind: StatefulSet

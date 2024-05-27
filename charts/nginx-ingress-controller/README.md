@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 <!--- app-name: NGINX Ingress Controller -->
 
 # NGINX Ingress Controller packaged by Bitnami
