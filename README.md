@@ -1034,4 +1034,4 @@ For direct assistance:
 
 - Slack: [Tazama.slack.com](http://Tazama.slack.com)
 
-Joining the FRMS CoE workspace on Slack will connect you with a community of experts and peers who can offer insights and help you leverage the full potential of your FRMS system. Always ensure that you are working within secure communication channels and handling sensitive information with care.
+Joining the Tazama CoE workspace on Slack will connect you with a community of experts and peers who can offer insights and help you leverage the full potential of your Tazama system. Always ensure that you are working within secure communication channels and handling sensitive information with care.
