@@ -2,7 +2,7 @@
 
 # AKS Detailed Installation Guide
 
-**This article will be an end-to-end guide for installing Tazama to any cluster but only once your EKS infrastructure is setup**.
+**This article will be an end-to-end guide for installing Tazama to any cluster but only once your AKS infrastructure is setup**.
 
 # **Instructions**
 
@@ -74,11 +74,11 @@
 
 Read through the infrastructure spec before starting with the deployment guide.
 
-[Infrastructure Spec for Tazama Sandbox](../System-Setup-On-Azure-With-Different-Reserve-Pricings/Infrastructure-Spec-For-Tazama-Sandbox.md)
+[Infrastructure Spec for Tazama Sandbox](https://github.com/frmscoe/docs/blob/main/Technical/Environment-Setup/Infrastructure/Infrastructure-Spec-For-Tazama.md)
 
-[Infrastructure Spec for Tazama](../system-setup-on-azure-with-different-reserve-pricings/Infrastructure-Spec-For-Tazama.md)
+[Infrastructure Spec for Tazama](https://github.com/frmscoe/docs/blob/main/Technical/Environment-Setup/Infrastructure/Infrastructure-Spec-For-Tazama.md)
 
-> :exclamation: **Important:** Access to the Tazama GIT Repository is required to proceed. If you do not currently have this access, or if you are unsure about your access level, please reach out to the Tazama Team to request the necessary permissions. It's crucial to ensure that you have the appropriate credentials to access the repository for seamless integration and workflow management.
+**Important:** Access to the Tazama GIT Repository is required to proceed. If you do not currently have this access, or if you are unsure about your access level, please reach out to the Tazama Team to request the necessary permissions. It's crucial to ensure that you have the appropriate credentials to access the repository for seamless integration and workflow management.
 
 # Step 1 - Helm charts
 
@@ -133,18 +133,16 @@ First, add the Tazama Helm repository to enable the installation of charts:
 
 **ie:** Another HELM chart exists for the clustered version of ArangoDB, as mentioned on the linked page. However, the single deployment version is preferred over the clustered one because it includes functionality that is absent or required in the enterprise option.
 
-[https://frmscoe.atlassian.net/wiki/spaces/FRMS/pages/34766856](https://frmscoe.atlassian.net/wiki/spaces/FRMS/pages/34766856)
-
 ### Repo
 
-[https://github.com/frmscoe/EKS-helm](https://github.com/frmscoe/EKS-helm)
+[https://github.com/frmscoe/AKS-helm](https://github.com/frmscoe/AKS-helm)
 
 ### Helm Repository Setup
 
 First, add the Tazama Helm repository to enable the installation of charts:
 
 ```bash
-helm repo add Tazama https://frmscoe.github.io/EKS-helm/
+helm repo add Tazama https://frmscoe.github.io/AKS-helm/
 helm repo update
 ```
 
@@ -160,7 +158,8 @@ To expose services outside your cluster, enable ingress on necessary charts:
 
 1. Kibana
 2. ArangoDb
-3. `Jenkins
+3. Jenkins
+4. TMS
 
 ```bash
 helm install kibana Tazama/kibana --namespace=development --set ingress.enabled=true
@@ -169,7 +168,7 @@ helm install kibana Tazama/kibana --namespace=development --set ingress.enabled=
 
 If you prefer not to configure an ingress controller, you can simply use port forwarding to access the front-end interfaces of your applications. This approach will not impact the end-to-end functionality of your system, as it is designed to utilize **fully qualified domain names** (FQDNs) for internal cluster communication.
 
-### Installing Helm Charts**
+### Installing Helm Charts
 
 The Tazama system is composed of multiple Helm charts for various services and components. These need to be installed in a specific order due to dependencies.
 
@@ -268,7 +267,7 @@ For a system utilizing a variety of Helm charts, optimizing performance, storage
 
 - **Configuration**: Use Grafana dashboards to visualize metrics from Prometheus and other data sources.
 - **Security**: Implement OAuth or LDAP for authentication. Use HTTPS for secure connections.
-- **Documentation**: [Grafana Documentation](https://grafana.com/docs/grafana/latest/) [Environment Monitoring](https://frmscoe.atlassian.net/wiki/spaces/FRMS/pages/65241090/Environment+Monitoring)
+- **Documentation**: [Grafana Documentation](https://grafana.com/docs/grafana/latest/) [Environment Monitoring](https://github.com/frmscoe/docs/blob/main/Technical/Logging/Environment-Monitoring.md)
 
 ## 10. Prometheus
 
@@ -290,15 +289,44 @@ For a system utilizing a variety of Helm charts, optimizing performance, storage
 
 Each of these components plays a critical role in the Tazama system. By carefully configuring and optimizing them according to the guidelines provided, you can ensure that your system is secure, scalable, and performs optimally. Always refer to the official documentation for the most up-to-date information and advanced configuration options.
 
-# Step 3 - Post-Installation Configuration
+# Step 3: Post-Installation Configuration
+
+## Elasticsearch Kube Secret for LumberJack
+
+In order to get the processor pods to write logs to the lumberjack deployment which then writes the log information to elasticsearch. 
+
+[Logging Data View](https://github.com/frmscoe/docs/blob/main/Technical/Logging/Logging-Data-View.md)
+
+1. There is a secret that is created for elasticsearch after the HELM install. Duplicate the one created by elasticsearch.
+2. Change the namespace for `development` to `processor`
+
+**Example**
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: elasticsearch-master-certs
+  namespace: processor
+type: kubernetes.io/tls
+data:
+  ca.crt: >-
+  tls.crt: >-
+  tls.key: >-
+
+```
 
 ## Setting up TLS for Ingress
 
 Secure your ingress with TLS by creating a tlscomsecret in each required namespace:
 
-1. Create a secret with your TLS certificate and key:
+You can generate a self-signed certificate and private key with this command;
 
-```yaml
+`openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=${HOST}/O=${HOST}" -addext "subjectAltName = DNS:${HOST}"`
+
+1. Create a secret with your TLS certificate and key;
+
+```nano
 apiVersion: v1
 kind: Secret
 metadata:
@@ -309,6 +337,12 @@ data:
   tls.crt: <base64-encoded-cert>
   tls.key: <base64-encoded-key>
 ```
+
+Or
+
+You can use kubectl to create the secret by running the command below;
+
+`kubectl create secret tlscomsecret ${CERT_NAME} --key tls.key --cert tls.crt -n development`
 
 2. Apply this configuration for each relevant namespace (`development`, `processor`, `cicd`, `default`).
 
@@ -344,6 +378,54 @@ spec:
 
 ```
 
+**Please see the TMS example below:**
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: test-ingress
+  namespace: processor
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+    nginx.ingress.kubernetes.io/cors-allow-headers: X-Forwarded-For
+    nginx.ingress.kubernetes.io/proxy-body-size: 50m
+    nginx.ingress.kubernetes.io/use-regex: 'true'
+spec:
+  tls:
+    - hosts:
+        - example.test.com
+      secretName: tlscomsecret
+  rules:
+    - host: example.test.com
+      http:
+        paths:
+          - path: /execute
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: transaction-monitoring-service-rel-1-0-0
+                port:
+                  number: 3000
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: transaction-monitoring-service-rel-1-0-0
+                port:
+                  number: 3000
+          - path: /natsPublish
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: nats-utilities-rel-1-0-0
+                port:
+                  number: 3000
+
+
+```
+
 ## Vault Configuration
 
 After installing the Vault chart, you'll need to initialize and unseal Vault manually. The process involves generating unseal keys and a root token which you'll use to access and configure Vault further.
@@ -362,7 +444,7 @@ If is set `LogLevel`to info, error etc.. in your Jenkins environment variables t
 
 For comprehensive instructions on how to configure logging to Elasticsearch, please refer to the accompanying document. It provides a step-by-step guide that covers all the necessary procedures to ensure your logging system is properly set up, capturing and forwarding logs to Elasticsearch. This includes configuring log shippers, setting up Elasticsearch indices, and establishing the necessary security and access controls. By following this documentation, you can enable efficient log management and monitoring for your services.
 
-[Logging Data View](../elasticsearch/Logging-Data-View.md)
+[Logging Data View](https://github.com/frmscoe/docs/blob/main/Technical/Logging/Logging-Data-View.md)
 
 ## APM Configuration
 
@@ -370,9 +452,19 @@ If is set `APMActive` to **true (default:true)** in your Jenkins environment var
 
 Once configured, the APM tool will begin collecting data on application performance metrics, such as response times, error rates, and throughput, which are critical for identifying and resolving performance issues. The collected data is sent to the APM server, where it can be visualized and analyzed. For detailed steps on integrating and configuring APM with your Jenkins environment, please refer to the specific APM setup documentation provided in your APM tool's resources.
 
-[https://frmscoe.atlassian.net/wiki/spaces/FRMS/pages/137330723/APM+Setup](https://frmscoe.atlassian.net/wiki/spaces/FRMS/pages/137330723/APM+Setup)
+[Setting Up Elastic APM](https://github.com/frmscoe/docs/blob/main/Technical/Logging/Setting-Up-Elastic-APM.md)
 
 ## Jenkins Configuration
+
+### Accessing Jenkins UI
+
+The following sections of the guide require you to work within the Jenkins UI. You can either access the UI through a doamin if you configured an ingress or by port forwarding.
+
+Port forward Jenkins to be accessible on localhost:8080 by running:
+  `kubectl --namespace cicd port-forward svc/jenkins 8080:8080`
+
+Get your 'admin' user password by running:
+  `kubectl exec --namespace cicd -it svc/jenkins -c jenkins -- /bin/cat /run/secrets/additional/chart-admin-password && echo`
 
 ### Adding Credentials in Jenkins
 
@@ -414,26 +506,26 @@ To configure Jenkins to use Kubernetes secrets for authenticating with Kubernete
 
 1. **Retrieve the Kubernetes Token**:
 
-   - Access your Kubernetes environment and locate the secret intended for Jenkins authentication, in this case, `scjenkins-secret`.
-   - Extract the token value from the secret, which is usually base64-encoded. You may need to decode it if necessary.
+- Access your Kubernetes environment and locate the secret intended for Jenkins authentication, in this case, `scjenkins-secret`.
+  - Extract the token value from the secret, which is usually base64-encoded. You have need to decode.
 
-2. **Add Secret in Jenkins**:
+1. **Add Secret in Jenkins**:
 
-   - Navigate to the Jenkins dashboard and go to the credentials management section.
-   - Choose to add new credentials, selecting the "Secret text" type.
-   - Paste the token you retrieved from the `scjenkins-secret` in namespace=**processor** into the Secret field.
+- Navigate to the Jenkins dashboard and go to the credentials management section.
+  - Choose to add new credentials, selecting the "Secret text" type.
+  - Paste the token you retrieved from the `scjenkins-secret` in namespace=**processor** into the Secret field.
 
 3. **Configure the Credential ID**:
 
-   - Set the ID of the new secret to `kubernetespro`. This ID will be used to reference these credentials within your Jenkins pipelines or job configurations.
+- Set the ID of the new secret to `kubernetespro`. This ID will be used to reference these credentials within your Jenkins pipelines or job configurations.
 
 4. **Add a Description**:
 
-   - Provide a description for the secret to document its use, such as "Token for authenticating Jenkins with Kubernetes services."
+- Provide a description for the secret to document its use, such as "Token for authenticating Jenkins with Kubernetes services."
 
 5. **Save the Configuration**:
 
-   - Click Save to store the new credentials in Jenkins.
+- Click Save to store the new credentials in Jenkins.
 
 Following this process will allow Jenkins jobs to authenticate with Kubernetes using the token stored in the secret, enabling operations that require Kubernetes access or pulling images from private registries linked to your Kubernetes environment.
 
@@ -459,7 +551,7 @@ The image shows a Jenkins configuration screen for adding a managed file, specif
 5. **Enforce NPM version 9 registry format:** A checkbox that, when checked, enforces the file to be compatible with the NPM version 9 registry format.
 6. **Add NPM Registry:**
 
-- **URL:** The registry URL field should be filled with the NPM registry's URL. The provided URL, [https://npm.pkg.github.com](https://npm.pkg.github.com), this config is for accessing packages stored in GitHub Package Registry.
+- **URL:** The registry URL field should be filled with the NPM registry's URL. The provided URL, [**https://npm.pkg.github.com**](https://npm.pkg.github.com), this config is for accessing packages stored in GitHub Package Registry.
 - **Credentials:** The dropdown is set to **github public read package**, indicating that the credentials stored in Jenkins should be used to authenticate with this registry.
 - **Use this registry for specific scoped packages:** This option indicates that the registry URL and credentials should only be used for packages with a specific scope. In this case, the scope is **frmscoe**.
 - **Registry scopes:** Here, you specify the scope for which this registry should be used. Scoped packages are prefixed with the scope in their package name, ie: **frmscoe**.
@@ -500,7 +592,7 @@ Once you've added this managed file, Jenkins can use it in various jobs that req
 
 Please follow the following document to help you build and push the image to the container registry.
 
-[Building the Jenkins Agent Image](../../../frms-platform-developers-documentation/knowledge-articles/building-the-jenkins-agent-image.md)
+[Building the Jenkins Agent Image](https://github.com/frmscoe/docs/blob/main/Technical/Release-Management/building-the-jenkins-image.md)
 
 ### Setting up a Jenkins cloud agent that will interact with your Kubernetes cluster
 
@@ -523,7 +615,10 @@ Please follow the following document to help you build and push the image to the
 
 ![image-20240212-112102.png](./Images/image-20240212-112102.png)
 
-- **Add a Container**: In this part of the configuration, you define the container that will run inside the pod created from the pod template.
+**Add a Container**: In this part of the configuration, you define the container that will run inside the pod created from the pod template.
+
+**NOTE** This needs to point to the docker image built in this step : [Building the Jenkins Agent Image](https://github.com/frmscoe/docs/blob/main/Technical/Release-Management/building-the-jenkins-image.md)
+
   - **Name**: The container name is set to `jnlp`. This is a conventional name for a Jenkins agent container that uses the JNLP (Java Network Launch Protocol) for the master-agent communication.
   - **Docker Image**: The Docker image to use is [example.io/jenkins-inbound-agent:1.0.0](http://example.io/jenkins-inbound-agent:1.0.0) . This image is pre-configured with all the necessary tools to run as a Jenkins agent.
   - **Always Pull Image**: This option ensures that Jenkins always pulls the latest version of the specified Docker image before starting a build. This is important to keep your build environment up-to-date with the latest changes to the image.
@@ -532,7 +627,7 @@ Please follow the following document to help you build and push the image to the
 
 ![image-20240212-115159.png](./Images/image-20240212-115159.png)
 
-- **Run in Privileged Mode**: This is an advanced container setting that allows processes within the container to execute with elevated privileges, similar to the root user on a Linux system.
+**Run in Privileged Mode**: This is an advanced container setting that allows processes within the container to execute with elevated privileges, similar to the root user on a Linux system.
 
 To select "Run in Privileged Mode" in Jenkins Kubernetes plugin:
 
@@ -563,17 +658,24 @@ By properly configuring image pull secrets in your Jenkins Kubernetes pod templa
 
 1. **Accessing Global Configuration**:
 
-   - Go to the Jenkins dashboard and navigate to **Manage Jenkins** > **Configure System**.
-   - Scroll down to the **Global properties** section.
-   - Check the box next to **Environment variables** to enable the definition of global environment variables.
+- Go to the Jenkins dashboard and navigate to **Manage Jenkins** > **Configure System**.
+- Scroll down to the **Global properties** section.
+- Check the box next to **Environment variables** to enable the definition of global environment variables.
 
 2. **Updating Environment Variables**:
 
-   - You will find a list of predefined variables, which you may need to update with new values relevant to the current deployment. These variables include configuration URLs, passwords, and tokens required by Jenkins jobs during the deployment process.
+- You will find a list of predefined variables, which you may need to update with new values relevant to the current deployment. These variables include configuration URLs, passwords, and tokens required by Jenkins jobs during the deployment process.
 
-   **Passwords:** These passwords can be found in your Kubernetes Cluster Secrets, which are autogenerated when the HELM installations are carried out.
+**Passwords:** These passwords can be found in your Kubernetes Cluster Secrets, which are autogenerated when the HELM installations are carried out.
 
-   **Multiple ArangoDB passwords and endpoints:** The reason we have different names and passwords for ArangoDB is to keep things organized and safe. Each name points to a different part of the database where different information is kept. Just like having different keys for different rooms. This is useful when you have more than one ArangoDB running at the same time and you want to keep them separate. This way, you can connect to just the part you need.
+**Multiple ArangoDB passwords and endpoints:** The reason we have different names and passwords for ArangoDB is to keep things organized and safe. Each name points to a different part of the database where different information is kept. Just like having different keys for different rooms. This is useful when you have more than one ArangoDB running at the same time and you want to keep them separate. This way, you can connect to just the part you need.
+
+If you have a single database instance you may be wondering why multiple password variants are needed. For example, if my `Configuration`, `Pseudonyms` and `TransactionHistory` databases are served from the same Arango instance, why must I include single quotes in their password input whereas that requirement was not needed in the `ArangoPassword` variable.
+
+The `ArangoPassword` variable is utilised as a CLI argument by `newman`, for setting up the environment. Where it is called, there is some shell substitution of the `ArangoPassword` variable but because the substitution involves a special character, `$`, that has to be surrounded by quotes. 
+`newman {omitted} "arangoPassword=${ArangoPassword}" --disable-unicode`
+
+The same reasoning applies to passwords are that explicitly stated to need a single quote around them as they are substituted as is in processors' environments. This means that if your password contains special characters, then you **must** use single quotes to let the decoder know to interpret them as raw strings, or it will be taken as an indication of substitution.
 
 3. **Variables and Descriptions**:
 
@@ -593,11 +695,15 @@ By properly configuring image pull secrets in your Jenkins Kubernetes pod templa
 - `ArangoPseudonymsURL`: Endpoint for the ArangoDB pseudonym Database.
   - **value:** [http://arango.development.svc.cluster.local:8529](http://arango.development.svc.cluster.local:8529)
 - `ArangoPseudonymsPassword`: A secret password required for accessing the Database. **NB:** The single quotes need to be added with your password.
-  - **eg:** 'rm]ukXyA@M'
+  - **eg:** 'rm\]ukXyA@M'
 - `ArangoTransactionHistoryURL`: Endpoint for the ArangoDB transaction history Database.
   - **value:** [http://arango.development.svc.cluster.local:8529](http://arango.development.svc.cluster.local:8529)
 - `ArangoTransactionHistoryPassword`: A secret password required for accessing the Database. **NB:** The single quotes need to be added with your password.
-  - **eg:** 'rm]ukXyA@M'
+  - **eg:** 'rm\]ukXyA@M'
+- `ArangoEvaluationURL`: Endpoint for the ArangoDB Evalation Database.
+  - **value:** [http://arango.development.svc.cluster.local:8529](http://arango.development.svc.cluster.local:8529)
+- `ArangoEvaluationPassword`: A secret password required for accessing the Database. **NB:** The single quotes need to be added with your password.
+  - **eg:** 'rm\]ukXyA@M'
 - `Branch`: The specific branch in source control that the deployment should target.
   - **value:** main
 - `CacheEnabled`: A flag to enable or disable caching.
@@ -631,7 +737,7 @@ By properly configuring image pull secrets in your Jenkins Kubernetes pod templa
 - `RedisCluster`: A flag to indicate if Redis is running in cluster mode.
   - **value:** true
 - `RedisPassword`: The password for accessing Redis.
-  - **eg:** ty6r5*&p0
+  - **eg:** ty6r5\*&p0
 - `RedisServers`: The hostname for the Redis Cluster service. **NB:** The single quotes need to be added in to the host string.
   - **value:** '[{"host": "redis-cluster.development.svc.cluster.local", "port":6379}]'
 - `Repository`: This parameter specifies the name of a repository
@@ -644,7 +750,7 @@ By properly configuring image pull secrets in your Jenkins Kubernetes pod templa
 - Provided is a `jobs.zip` file, which contains job configuration files that you need to add to your Jenkins instance.
 - Extract the zip file.
 
-[jobs.zip](./attachments/jobs.zip)
+[jobs.zip](./jenkins-setup/jobs.zip)
 
 #### Navigate to Configuration Directory:
 
@@ -722,12 +828,14 @@ After importing the Jenkins jobs, you need to configure each job with the approp
    - Under Credentials, select the appropriate credentials from the drop-down list, such as **Github Creds**, which should correspond to the credentials that have access to the repository.
 
 3. **Kubernetes Configuration:**
+   
+**NOTE-** The Kubernetes server endpoint can be copied from your .kubeconfig file under cluster -> server
 
    - Check the option for **Setup Kubernetes CLI (kubectl**) if not already done.
    - Input the **Kubernetes server endpoint**; this is the API server URL of your Kubernetes cluster.
    - Select the **Credentials** for Kubernetes from the drop-down list, which will typically be a service account token or a kubeconfig file.
 
-4. **Binding Credentials:**
+5. **Binding Credentials:**
 
 - Under the **Bindings** section, define the environment variables that the job will use internally.
 - For username and password types, such as container registry credentials, set the appropriate **Username Variable** and **Password Variable**. Use **REG_USER** and **REG_PASS** for registry credentials.
@@ -866,6 +974,54 @@ When encountering authentication errors during a Jenkins build process that invo
 
 By following these steps, you can address the authentication issues that are causing the Jenkins build process to fail, ensuring a successful connection to Kubernetes and Docker registry services.
 
+### Jenkins Build Agent terminating and restarting
+
+If for some reason the jenkins agent starts up on your kubernetes instance and then termnates and restarts. You might need to change to frmpullsecret with namespace`cicd`to .dockerconfigjson data.
+
+
+**Docker Config JSON: Understanding the** `auth` **Field**
+
+The `auth` field in the `.dockerconfigjson` file is a base64-encoded string that combines your Docker registry username and password in the format `username:password`. Here's how you can construct it:
+
+**Steps to Construct the** `auth` **Field**
+
+1. **Combine the Username and Password**
+
+   Format the string as `username:password`. For example, your username is `frms` and your password is `yourpassword`.
+
+2. **Base64 Encode the String**
+
+You can use a command-line tool like `base64` or an online base64 encoder to encode the string.
+
+Using a command-line tool:
+
+```sh
+echo -n 'frms:yourpassword' | base64
+```
+
+This will produce a base64-encoded string, which you then place in the auth field.
+
+Here is an example of what the .dockerconfigjson data in the secret file might look like after encoding:
+
+```json
+{"auths":{"registory":{"username":"frms","password":"token","email":"no@email.local","auth":"QVdTOnlvdXJwYXNzd29yZA=="}}}
+
+```
+
+**Please see the example below:**
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: frmpullsecret
+  namespace: cicd
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: >-
+```
+
+
 # Conclusion: Finalizing Tazama System Installation
 
 With the Helm charts and Jenkins jobs successfully executed, your Tazama (Real-time Monitoring System) should now be operational within your Kubernetes cluster. This comprehensive setup leverages the robust capabilities of Kubernetes orchestrated by Jenkins automation to ensure a seamless deployment process.
@@ -876,6 +1032,6 @@ Should you encounter any issues or have questions regarding the installation and
 
 For direct assistance:
 
-- Slack: [frmscoe.slack.com](http://frmscoe.slack.com)
+- Slack: [Tazama.slack.com](http://Tazama.slack.com)
 
 Joining the Tazama CoE workspace on Slack will connect you with a community of experts and peers who can offer insights and help you leverage the full potential of your Tazama system. Always ensure that you are working within secure communication channels and handling sensitive information with care.
