@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 {{- if or .Values.proxySetHeaders .Values.headers }}
 apiVersion: v1
 kind: ConfigMap
