@@ -7,7 +7,8 @@
 # **Instructions**
 
 - [AKS Detailed Installation Guide](#aks-detailed-installation-guide)
-- [**Instructions**](#instructions)
+- [Instructions](#instructions)
+  - [Azure Container Registry (ACR) Setup](#list-of-repositories-for-ecr-setup)
 - [Step 1 - Helm charts](#step-1---helm-charts)
   - [Overview](#overview)
   - [Prerequisites](#prerequisites)
@@ -79,6 +80,64 @@ Read through the infrastructure spec before starting with the deployment guide.
 [Infrastructure Spec for Tazama](https://github.com/frmscoe/docs/blob/main/Technical/Environment-Setup/Infrastructure/Infrastructure-Spec-For-Tazama.md)
 
 **Important:** Access to the Tazama GIT Repository is required to proceed. If you do not currently have this access, or if you are unsure about your access level, please reach out to the Tazama Team to request the necessary permissions. It's crucial to ensure that you have the appropriate credentials to access the repository for seamless integration and workflow management.
+
+## Azure Container Registry (ACR) Setup
+
+1. Create an Azure container registry with a name e.g `tazama`
+2. Add a list of Repositories for the different services listed below.
+
+Our repository list includes a variety of components, each representing specific microservices and tools within our ecosystem. You need to create these in your AWS env in the ECR service.
+
+**Repository list:**
+
+Default `release version`: **rel-1-0-0** to make e.g `rule-001-rel-1-0-0-dev`
+
+- `rule-001-<release version>-<envName variable set in jenkins>`
+- `rule-002-<release version>-<envName variable set in jenkins>`
+- `rule-003-<release version>-<envName variable set in jenkins>`
+- `rule-004-<release version>-<envName variable set in jenkins>`
+- `rule-006-<release version>-<envName variable set in jenkins>`
+- `rule-007-<release version>-<envName variable set in jenkins>`
+- `rule-008-<release version>-<envName variable set in jenkins>`
+- `rule-010-<release version>-<envName variable set in jenkins>`
+- `rule-011-<release version>-<envName variable set in jenkins>`
+- `rule-016-<release version>-<envName variable set in jenkins>`
+- `rule-017-<release version>-<envName variable set in jenkins>`
+- `rule-018-<release version>-<envName variable set in jenkins>`
+- `rule-021-<release version>-<envName variable set in jenkins>`
+- `rule-024-<release version>-<envName variable set in jenkins>`
+- `rule-025-<release version>-<envName variable set in jenkins>`
+- `rule-026-<release version>-<envName variable set in jenkins>`
+- `rule-027-<release version>-<envName variable set in jenkins>`
+- `rule-028-<release version>-<envName variable set in jenkins>`
+- `rule-030-<release version>-<envName variable set in jenkins>`
+- `rule-044-<release version>-<envName variable set in jenkins>`
+- `rule-045-<release version>-<envName variable set in jenkins>`
+- `rule-048-<release version>-<envName variable set in jenkins>`
+- `rule-054-<release version>-<envName variable set in jenkins>`
+- `rule-063-<release version>-<envName variable set in jenkins>`
+- `rule-074-<release version>-<envName variable set in jenkins>`
+- `rule-075-<release version>-<envName variable set in jenkins>`
+- `rule-076-<release version>-<envName variable set in jenkins>`
+- `rule-078-<release version>-<envName variable set in jenkins>`
+- `rule-083-<release version>-<envName variable set in jenkins>`
+- `rule-084-<release version>-<envName variable set in jenkins>`
+- `rule-090-<release version>-<envName variable set in jenkins>`
+- `rule-091-<release version>-<envName variable set in jenkins>`
+- `jenkins-inbound-agent`
+- `event-director-<release version>-<envName variable set in jenkins>`
+- `event-sidecar-<release version>`
+- `lumberjack-<envName variable set in jenkins>`
+- `tms-service-<release version>-<envName variable set in jenkins>`
+- `transaction-aggregation-decisioning-processor-<release version>-<envName variable set in jenkins>`
+- `typology-processor-<release version>-<envName variable set in jenkins>`
+- `event-director-<release version>-<envName variable set in jenkins>`
+
+3. Log in to registry
+
+Before pushing and pulling container images, you must log in to the registry instance. Sign into the Azure CLI on your local machine, then run the az acr login command. Specify only the registry resource name when logging in with the Azure CLI. Don't use the fully qualified login server name. e.g `az acr login --name tazama`
+
+4. Create a token that will be used in the later deployment steps. This token will need to be saved in Jenkins credentials / secrets. The command to use for this will be `az acr token` Please reference this [az acr token doc](https://learn.microsoft.com/en-us/cli/azure/acr/token?view=azure-cli-latest) for further explanation.
 
 # Step 1 - Helm charts
 
@@ -201,9 +260,20 @@ helm repo update
 helm install jenkins jenkins/jenkins --set ingress.enabled=true --namespace=cicd
 ```
 
+### Accessing Jenkins UI
+
+The following sections of the guide require you to work within the Jenkins UI. You can either access the UI through a doamin if you configured an ingress or by port forwarding.
+
+Port forward Jenkins to be accessible on localhost:8080 by running:
+  `kubectl --namespace cicd port-forward svc/jenkins 8080:8080`
+
+Get your 'admin' user password by running:
+  `kubectl exec --namespace cicd -it svc/jenkins -c jenkins -- /bin/cat /run/secrets/additional/chart-admin-password && echo`
+
 Navigate to the Jenkins UI, username `admin` and retrieved password to login. Go to `Manage Jenkins`, Under `System Configuration`, select `Plugins` and install the `Configuration File`, `Nodejs` and `Docker` plugins that will enable later configuration steps.
 
-  For optional components like Grafana, Prometheus, Vault, and KeyCloak, use similar commands if you decide to implement these features.
+
+For optional components like Grafana, Prometheus, Vault, and KeyCloak, use similar commands if you decide to implement these features.
 
 **Extra Information:** [https://helm.sh/docs/helm/helm_install/](https://helm.sh/docs/helm/helm_install/)
 
@@ -496,7 +566,7 @@ Credentials are critical for Jenkins to interact with other services like source
 1. Follow the first two steps as above to navigate to the Add Credentials page.
 2. Select **Username with password.**
 3. `Input the username for your container registry.
-4. Enter the corresponding password or access token for the registry.
+4. Enter the corresponding password or access token for the registry. This token was gotten during repository creation
 5. Assign a unique ID, such as **ContainerRegistry**.
 6. Include a description that helps identify the registry, like **Login info for the container registry.**
 7. Click **Save.**
