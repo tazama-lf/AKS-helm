@@ -7,7 +7,8 @@
 # **Instructions**
 
 - [AKS Detailed Installation Guide](#aks-detailed-installation-guide)
-- [**Instructions**](#instructions)
+- [Instructions](#instructions)
+  - [Azure Container Registry (ACR) Setup](#list-of-repositories-for-ecr-setup)
 - [Step 1 - Helm charts](#step-1---helm-charts)
   - [Overview](#overview)
   - [Prerequisites](#prerequisites)
@@ -80,6 +81,64 @@ Read through the infrastructure spec before starting with the deployment guide.
 
 **Important:** Access to the Tazama GIT Repository is required to proceed. If you do not currently have this access, or if you are unsure about your access level, please reach out to the Tazama Team to request the necessary permissions. It's crucial to ensure that you have the appropriate credentials to access the repository for seamless integration and workflow management.
 
+## Azure Container Registry (ACR) Setup
+
+1. Create an Azure container registry with a name e.g `tazama`
+2. Add a list of Repositories for the different services listed below.
+
+Our repository list includes a variety of components, each representing specific microservices and tools within our ecosystem. You need to create these in your AWS env in the ECR service.
+
+**Repository list:**
+
+Default `release version`: **rel-1-0-0** to make e.g `rule-001-rel-1-0-0-dev`
+
+- `rule-001-<release version>-<envName variable set in jenkins>`
+- `rule-002-<release version>-<envName variable set in jenkins>`
+- `rule-003-<release version>-<envName variable set in jenkins>`
+- `rule-004-<release version>-<envName variable set in jenkins>`
+- `rule-006-<release version>-<envName variable set in jenkins>`
+- `rule-007-<release version>-<envName variable set in jenkins>`
+- `rule-008-<release version>-<envName variable set in jenkins>`
+- `rule-010-<release version>-<envName variable set in jenkins>`
+- `rule-011-<release version>-<envName variable set in jenkins>`
+- `rule-016-<release version>-<envName variable set in jenkins>`
+- `rule-017-<release version>-<envName variable set in jenkins>`
+- `rule-018-<release version>-<envName variable set in jenkins>`
+- `rule-021-<release version>-<envName variable set in jenkins>`
+- `rule-024-<release version>-<envName variable set in jenkins>`
+- `rule-025-<release version>-<envName variable set in jenkins>`
+- `rule-026-<release version>-<envName variable set in jenkins>`
+- `rule-027-<release version>-<envName variable set in jenkins>`
+- `rule-028-<release version>-<envName variable set in jenkins>`
+- `rule-030-<release version>-<envName variable set in jenkins>`
+- `rule-044-<release version>-<envName variable set in jenkins>`
+- `rule-045-<release version>-<envName variable set in jenkins>`
+- `rule-048-<release version>-<envName variable set in jenkins>`
+- `rule-054-<release version>-<envName variable set in jenkins>`
+- `rule-063-<release version>-<envName variable set in jenkins>`
+- `rule-074-<release version>-<envName variable set in jenkins>`
+- `rule-075-<release version>-<envName variable set in jenkins>`
+- `rule-076-<release version>-<envName variable set in jenkins>`
+- `rule-078-<release version>-<envName variable set in jenkins>`
+- `rule-083-<release version>-<envName variable set in jenkins>`
+- `rule-084-<release version>-<envName variable set in jenkins>`
+- `rule-090-<release version>-<envName variable set in jenkins>`
+- `rule-091-<release version>-<envName variable set in jenkins>`
+- `jenkins-inbound-agent`
+- `event-director-<release version>-<envName variable set in jenkins>`
+- `event-sidecar-<release version>`
+- `lumberjack-<envName variable set in jenkins>`
+- `tms-service-<release version>-<envName variable set in jenkins>`
+- `transaction-aggregation-decisioning-processor-<release version>-<envName variable set in jenkins>`
+- `typology-processor-<release version>-<envName variable set in jenkins>`
+- `event-director-<release version>-<envName variable set in jenkins>`
+
+3. Log in to registry
+
+Before pushing and pulling container images, you must log in to the registry instance. Sign into the Azure CLI on your local machine, then run the az acr login command. Specify only the registry resource name when logging in with the Azure CLI. Don't use the fully qualified login server name. e.g `az acr login --name tazama`
+
+4. Create a token that will be used in the later deployment steps. This token will need to be saved in Jenkins credentials / secrets. The command to use for this will be `az acr token` Please reference this [az acr token doc](https://learn.microsoft.com/en-us/cli/azure/acr/token?view=azure-cli-latest) for further explanation.
+
 # Step 1 - Helm charts
 
 ## Overview
@@ -88,7 +147,7 @@ This guide will walk you through the setup of the Tazama (Real-time Antifraud an
 
 ## Prerequisites
 
-- A Kubernetes cluster up and running.
+- A Kubernetes cluster up and running on AKS.
 - Helm installed on your local machine or wherever you plan to run the commands from.
 - Basic understanding of Kubernetes concepts like namespaces, pods, and ingress.
 
@@ -135,14 +194,14 @@ First, add the Tazama Helm repository to enable the installation of charts:
 
 ### Repo
 
-[https://github.com/frmscoe/AKS-helm](https://github.com/frmscoe/AKS-helm)
+[https://github.com/tazama-lf/AKS-helm](https://github.com/tazama-lf/AKS-helm)
 
 ### Helm Repository Setup
 
 First, add the Tazama Helm repository to enable the installation of charts:
 
 ```bash
-helm repo add Tazama https://frmscoe.github.io/AKS-helm/
+helm repo add Tazama https://tazama-lf.github.io/AKS-helm/
 helm repo update
 ```
 
@@ -176,6 +235,7 @@ The Tazama system is composed of multiple Helm charts for various services and c
 
 ```bash
 helm install infra-chart Tazama/infra-chart
+helm repo update
 ```
 
 2. Follow with the installation of other charts as listed, specifying the namespace as required:
@@ -189,11 +249,31 @@ helm install logstash Tazama/logstash --namespace=development
 helm install arangodb-ingress-proxy Tazama/arangodb-ingress-proxy --namespace=development
 helm install arango Tazama/arangodb --namespace=development
 helm install redis-cluster Tazama/redis-cluster --namespace=development
-helm install jenkins Tazama/jenkins --namespace=cicd
 helm install nats Tazama/nats --namespace=development
 ```
 
-  For optional components like Grafana, Prometheus, Vault, and KeyCloak, use similar commands if you decide to implement these features.
+3. We're going to install Jenkins with helm by following the official docs. Take note of post installation notes to retrieve password and port forward.
+
+```bash
+helm repo add jenkins https://charts.jenkins.io
+helm repo update
+helm install jenkins jenkins/jenkins --set ingress.enabled=true --namespace=cicd
+```
+
+### Accessing Jenkins UI
+
+The following sections of the guide require you to work within the Jenkins UI. You can either access the UI through a doamin if you configured an ingress or by port forwarding.
+
+Port forward Jenkins to be accessible on localhost:8080 by running:
+  `kubectl --namespace cicd port-forward svc/jenkins 8080:8080`
+
+Get your 'admin' user password by running:
+  `kubectl exec --namespace cicd -it svc/jenkins -c jenkins -- /bin/cat /run/secrets/additional/chart-admin-password && echo`
+
+Navigate to the Jenkins UI, username `admin` and retrieved password to login. Go to `Manage Jenkins`, Under `System Configuration`, select `Plugins` and install the `Configuration File`, `Nodejs` and `Docker` plugins that will enable later configuration steps.
+
+
+For optional components like Grafana, Prometheus, Vault, and KeyCloak, use similar commands if you decide to implement these features.
 
 **Extra Information:** [https://helm.sh/docs/helm/helm_install/](https://helm.sh/docs/helm/helm_install/)
 
@@ -440,7 +520,7 @@ After installing the Vault chart, you'll need to initialize and unseal Vault man
 
 ## Logstash Configuration
 
-If is set `LogLevel`to info, error etc.. in your Jenkins environment variables then you will need configure this.
+If `LogLevel` is set to info, error etc.. in your Jenkins environment variables then you will need configure this.
 
 For comprehensive instructions on how to configure logging to Elasticsearch, please refer to the accompanying document. It provides a step-by-step guide that covers all the necessary procedures to ensure your logging system is properly set up, capturing and forwarding logs to Elasticsearch. This includes configuring log shippers, setting up Elasticsearch indices, and establishing the necessary security and access controls. By following this documentation, you can enable efficient log management and monitoring for your services.
 
@@ -448,7 +528,7 @@ For comprehensive instructions on how to configure logging to Elasticsearch, ple
 
 ## APM Configuration
 
-If is set `APMActive` to **true (default:true)** in your Jenkins environment variables then you will need configure this
+If `APMActive` is set to **true (default:true)** in your Jenkins environment variables then you will need configure this
 
 Once configured, the APM tool will begin collecting data on application performance metrics, such as response times, error rates, and throughput, which are critical for identifying and resolving performance issues. The collected data is sent to the APM server, where it can be visualized and analyzed. For detailed steps on integrating and configuring APM with your Jenkins environment, please refer to the specific APM setup documentation provided in your APM tool's resources.
 
@@ -486,7 +566,7 @@ Credentials are critical for Jenkins to interact with other services like source
 1. Follow the first two steps as above to navigate to the Add Credentials page.
 2. Select **Username with password.**
 3. `Input the username for your container registry.
-4. Enter the corresponding password or access token for the registry.
+4. Enter the corresponding password or access token for the registry. This token was gotten during repository creation
 5. Assign a unique ID, such as **ContainerRegistry**.
 6. Include a description that helps identify the registry, like **Login info for the container registry.**
 7. Click **Save.**
@@ -554,7 +634,7 @@ The image shows a Jenkins configuration screen for adding a managed file, specif
 - **URL:** The registry URL field should be filled with the NPM registry's URL. The provided URL, [**https://npm.pkg.github.com**](https://npm.pkg.github.com), this config is for accessing packages stored in GitHub Package Registry.
 - **Credentials:** The dropdown is set to **github public read package**, indicating that the credentials stored in Jenkins should be used to authenticate with this registry.
 - **Use this registry for specific scoped packages:** This option indicates that the registry URL and credentials should only be used for packages with a specific scope. In this case, the scope is **frmscoe**.
-- **Registry scopes:** Here, you specify the scope for which this registry should be used. Scoped packages are prefixed with the scope in their package name, ie: **frmscoe**.
+- **Registry scopes:** Here, you specify the scope for which this registry should be used. Scoped packages are prefixed with the scope in their package name, ie: `frmscoe` `tazama-lf`
 
 1. **Content:** The text area labeled 'Content' is where you can input the actual content of the **.npmrc** file. This content typically includes configuration settings like the registry URL, authentication tokens, and various other npm options. **always-auth = false** will not be always required (usually for public registries).
 2. **Add:** After configuring all the fields, you would click "Add" to save this managed file configuration.
@@ -596,21 +676,34 @@ Please follow the following document to help you build and push the image to the
 
 ### Setting up a Jenkins cloud agent that will interact with your Kubernetes cluster
 
-**Navigate to Manage Jenkins → Clouds → Kubernetes**
+**Navigate to Manage Jenkins → Clouds → Kubernetes settings**
 
-- **Add the Path to Your Kubernetes Instance**: Enter the URL of your Kubernetes API server in the Kubernetes URL field. This allows Jenkins to communicate with your Kubernetes cluster.
+- **Add the Path to Your Kubernetes Instance**: Enter the URL of your Kubernetes API server in the Kubernetes URL field. This allows Jenkins to communicate with your Kubernetes cluster. Leave deafult value set to `https://kubernetes.default/`
+
 - **Disable HTTPS Certificate Check**: If your Kubernetes cluster uses a self-signed certificate or you are in a development environment where certificate validation is not critical, you can disable the HTTPS certificate check. However, for production environments, it is recommended to use a valid SSL certificate and leave this option unchecked for security reasons.
+
 - **Add Kubernetes Namespace**: Enter `cicd` in the Kubernetes Namespace field. This is where your Jenkins agents will run within the Kubernetes cluster.
-- **Add Your Kubernetes Credentials**: Select the credentials you have created for Kubernetes access. These credentials will be used by Jenkins to authenticate with the Kubernetes cluster.
+
+- **Add Your Kubernetes Credentials**: Select the credentials you have created for Kubernetes access. These credentials will be used by Jenkins to authenticate with the Kubernetes cluster. Select `None`
+
+- Test connection button and ensure it's a positive connection
+
 - **Select WebSocket**: Enabling WebSocket is useful for maintaining a stable connection between Jenkins and the Kubernetes cluster, especially when Jenkins is behind a reverse proxy or firewall.
+
 - **Add Jenkins URL**: This should be the internal service URL for Jenkins within your Kubernetes cluster, like `http://jenkins.cicd.svc.cluster.local`
+
 - **Add Pod Label**: Labels are key-value pairs used for identifying resources within Kubernetes. Here, you should add a label with the key `jenkins` and the value `agent`. This label will be used to associate the built pods with the Jenkins service.
 
 ![image-20240212-115316.png](./Images/image-20240212-115316.png)![image-20240212-111931.png](./Images/image-20240212-111931.png)
 
 - **Add a Pod Template**: This step involves defining a new pod template, which Jenkins will use to spin up agents on your Kubernetes cluster.
+
+  - A new pod template can be created but we'll use the existing / default one and edit to add the values below
+
   - **Name**: Name the pod template `jenkins-builder`. This name is used to reference the pod template within Jenkins pipelines or job configurations.
+
   - **Namespace**: Specify `cicd` as the namespace where the Jenkins agents will be deployed within the Kubernetes cluster.
+
   - **Labels**: Set `jenkins-agent` as the label. This is a key identifier that Jenkins jobs will use to select this pod template when running builds.
 
 ![image-20240212-112102.png](./Images/image-20240212-112102.png)
@@ -645,7 +738,7 @@ Needs to be set to - **frmpullsecret - see screenshot below**
 
    - Navigate to the Kubernetes cloud configuration within the Jenkins system settings.
    - Under the specific pod template that you are configuring, find the `ImagePullSecrets` section.
-   - Enter the name of the Kubernetes secret that contains your private registry credentials in the `Name` field. This secret should already exist within the same namespace as where your Jenkins builder pods are running.
+   - Enter the name of the Kubernetes secret that contains your private registry credentials in the `Name` field. This secret should already exist within the same namespace as where your Jenkins builder pods are running. Value of the secret is `frmpullsecret`
    - If you have multiple registries or need to pull from multiple private sources, you can add additional image pull secrets by clicking on the “Add Image Pull Secret” dropdown and entering the names of these secrets.
 
 3. **YAML Merge Strategy**: The YAML merge strategy determines how Jenkins should handle the YAML definitions from inherited pod templates. If set to 'Override', it means that the current YAML will completely replace any inherited YAML, which could be important if you need to ensure that the image pull secrets are applied without being altered by any inherited configurations.
@@ -658,7 +751,7 @@ By properly configuring image pull secrets in your Jenkins Kubernetes pod templa
 
 1. **Accessing Global Configuration**:
 
-- Go to the Jenkins dashboard and navigate to **Manage Jenkins** > **Configure System**.
+- Go to the Jenkins dashboard and navigate to **Manage Jenkins** > **System**.
 - Scroll down to the **Global properties** section.
 - Check the box next to **Environment variables** to enable the definition of global environment variables.
 
@@ -818,12 +911,14 @@ After importing the Jenkins jobs, you need to configure each job with the approp
 
 1. **Access Each Rule Processor Job:**
 
-   - Navigate to the job configuration for each rule processor, such as TMS, Typology, etc.
+   - Navigate to the job configuration for each rule processor, such as TMS, Typology, etc. Click on `configure` to be able to edit
    - Within each job, look for the section where you can define or edit the repository from which the job will fetch the code or artifacts.
 
 2. **Repository Configuration:**
 
-   - Set the **Repository URL** to the Git repository where the code for the processor is located. This is typically a URL like https://github.com/<Repository>/channel-router-setup-processor/.
+   - Set the **Repository URL** to the Git repository where the code for the processor is located. This is typically a URL like https://github.com/<Repository>/event-director/.
+
+   - Since Tazama services codebase lives in 2 github organization accounts, you'll need to change `$Repository` for rule-processors to be `tazama-lf`. It's okay to hardcode this.
 
    - Under Credentials, select the appropriate credentials from the drop-down list, such as **Github Creds**, which should correspond to the credentials that have access to the repository.
 
@@ -833,13 +928,13 @@ After importing the Jenkins jobs, you need to configure each job with the approp
 
    - Check the option for **Setup Kubernetes CLI (kubectl**) if not already done.
    - Input the **Kubernetes server endpoint**; this is the API server URL of your Kubernetes cluster.
-   - Select the **Credentials** for Kubernetes from the drop-down list, which will typically be a service account token or a kubeconfig file.
+   - Select the **Credentials** for Kubernetes from the drop-down list, which will typically be a service account token or a kubeconfig file. The token you need to use here is `Token for authenticating Jenkins with Kubernetes services` incase you used the credentials ID described in this doc.
 
 5. **Binding Credentials:**
 
 - Under the **Bindings** section, define the environment variables that the job will use internally.
 - For username and password types, such as container registry credentials, set the appropriate **Username Variable** and **Password Variable**. Use **REG_USER** and **REG_PASS** for registry credentials.
-- Choose the specific credentials from the drop-down list, like **Login info for the Sybrin Azure container registry.**
+- Choose the specific credentials from the drop-down list, like **Login info for the Azure container registry.**
 - For secret texts, such as a GitHub access token, set the Variable to an environment variable name, such as **READ_GH_TOKEN**, and select the appropriate credentials, like **github public read package**.
 
 By completing these steps, you ensure that each Jenkins job can access the necessary repositories and services with the correct permissions and interact with your Kubernetes cluster using the right endpoints and credentials. It's essential to review and verify these settings regularly, especially after any changes to the credentials or infrastructure.
